@@ -18,7 +18,7 @@ POWERKEY = 24
 STATUS = 23
 L96_RESET = 18
 L96_STANDBY = 20
-1PPS_PIN = 26
+PPS_PIN = 26
 
 # global variables
 TIMEOUT = 3 # seconds
@@ -74,10 +74,10 @@ class GPRSIoT:
 		GPIO.setwarnings(False)
 		GPIO.setup(ENABLE, GPIO.OUT)
 		GPIO.setup(POWERKEY, GPIO.OUT)
-		GPIO.setup(L96_RESET GPIO.OUT)
+		GPIO.setup(L96_RESET, GPIO.OUT)
 		GPIO.setup(L96_STANDBY, GPIO.OUT)
 		GPIO.setup(STATUS, GPIO.IN)
-		GPIO.setup(1PPS_PIN, GPIO.IN)
+		GPIO.setup(PPS_PIN, GPIO.IN)
 			
 		debug_print(self.board + " Class initialized!")
  	
@@ -97,10 +97,11 @@ class GPRSIoT:
 
 	# Function for powering up or down M95 module
 	def powerUp(self):
-		GPIO.output(POWERKEY,1)
-		delay(1000)
-		GPIO.output(POWERKEY,0)
-		delay(1000)
+		if(self.getModemStatus()):
+			GPIO.output(POWERKEY,1)
+			delay(1000)
+			GPIO.output(POWERKEY,0)
+			delay(1000)
 		
 		while self.getModemStatus():
 			pass
