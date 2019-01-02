@@ -9,7 +9,7 @@ api_key = "XXXXXXXXXXXXX"; # change with api-key
 
 data = "field1=%d"
 
-node = gprsiot.gprsiot()
+node = gprsiot.GPRSIoT()
 node.disable()
 node.enable()
 node.powerUp()

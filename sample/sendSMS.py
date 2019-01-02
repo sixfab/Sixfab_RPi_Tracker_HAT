@@ -5,7 +5,7 @@
 from gprsiot import gprsiot
 import time
 
-node = gprsiot.gprsiot()
+node = gprsiot.GPRSIoT()
 node.disable()
 time.sleep(0.5)
 node.enable()

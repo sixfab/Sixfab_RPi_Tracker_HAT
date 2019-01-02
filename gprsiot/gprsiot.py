@@ -262,14 +262,10 @@ class GPRSIoT:
 	def getSignalQuality(self):
 		return self.sendATComm("AT+CSQ","OK\r\n")
 
-	# Function for getting network information
-	def getQueryNetworkInfo(self):
-		return self.sendATComm("AT+QNWINFO","OK\r\n")
-
 	# Function for connecting to base station of operator
 	def connectToOperator(self):
 		debug_print("Trying to connect base station of operator...")
-		self.sendATComm("AT+CGATT?","+CGATT: 1\r\n")
+		self.sendATComm("AT+CGREG?","+CGREG: 0,1\r\n");
 		self.getSignalQuality()
 
 	
@@ -398,49 +394,69 @@ class GPRSIoT:
 					ser.close()
 					return 0
 
-	# Function for getting fixed location 
-	def getFixedLocation(self):
-		return self.sendATComm("AT+QGPSLOC?","+QGPSLOC:")
-
-
 	#******************************************************************************************
 	#*** TCP & UDP Protocols Functions ********************************************************
 	#******************************************************************************************
 	
 	# Function for configurating and activating TCP context 
 	def activateContext(self):
-	  self.sendATComm("AT+QICSGP=1","OK\r\n") 
-	  delay(1000)
-	  self.sendATComm("AT+QIACT=1","\r\n")
+	self.sendATComm("AT+CGDCONT=1,\"IP\",\"CMNET\"","OK\r\n"); 
+  	delay(1000);
+  	self.sendATComm("AT+CGACT=1,1","\r\n");
 
 	# Function for deactivating TCP context 
 	def deactivateContext(self):
-	  self.sendATComm("AT+QIDEACT=1","\r\n")
+	  self.sendATComm("AT+CGACT=0,1","\r\n");
 
 	# Function for connecting to server via TCP
 	# just buffer access mode is supported for now.
 	def connectToServerTCP(self):
-		self.compose = "AT+QIOPEN=1,1"
-		self.compose += ",\"TCP\",\""
+		self.compose = "AT+QIOPEN="
+		self.compose += "\"TCP\",\""
 		self.compose += str(self.ip_address)
 		self.compose += "\","
 		self.compose += str(self.port_number)
-		self.compose += ",0,0"
 
 		self.sendATComm(self.compose,"OK\r\n")
 		self.clear_compose()
-		self.sendATComm("AT+QISTATE=0,1","OK\r\n")
+		self.sendATComm("AT+QISTATE","OK\r\n");
 
 	# Fuction for sending data via tcp.
 	# just buffer access mode is supported for now.
 	def sendDataTCP(self, data):
-		self.compose = "AT+QISEND=1,"
+		self.compose = "AT+QISEND="
 		self.compose += str(len(data))
 
 		self.sendATComm(self.compose,">")
 		self.sendATComm(data,"SEND OK")
 		self.clear_compose()
 	
+	# Function for connecting to server via UDP
+	def startUDPService(self):
+		port = "3005"
+
+		self.compose = "AT+QIOPEN=\"UDP\",\""
+		self.compose += str(self.ip_address)
+		self.compose += "\","
+		self.compose += str(port)
+
+		self.sendATComm(self.compose,"OK\r\n")
+		self.clear_compose()
+		sendATComm("AT+QISTATE","\r\n");
+
+	# Fuction for sending data via udp.
+	def sendDataUDP(self, data):
+		self.compose = "AT+QISEND="
+		self.compose += str(len(data))
+
+		self.sendATComm(self.compose,">")
+		self.clear_compose()
+		self.sendATComm(data,"SEND OK")
+
+	# Function for closing server connection
+	def closeConnection(self):
+		self.sendATComm("AT+QICLOSE","\r\n")
+
 	# Function for sending data to Sixfab connect
 	def sendDataSixfabConnect(self, server, token, data):
 	
@@ -539,38 +555,6 @@ class GPRSIoT:
 		
 		self.sendATComm("AT+QHTTPGET=80","+QHTTPGET")
 
-	# Function for connecting to server via UDP
-	def startUDPService(self):
-		port = "3005"
-
-		self.compose = "AT+QIOPEN=1,1,\"UDP SERVICE\",\""
-		self.compose += str(self.ip_address)
-		self.compose += "\",0,"
-		self.compose += str(port)
-		self.compose += ",0"
-
-		self.sendATComm(self.compose,"OK\r\n")
-		self.clear_compose()
-		self.sendATComm("AT+QISTATE=0,1","\r\n")
-
-	# Fuction for sending data via udp.
-	def sendDataUDP(self, data):
-		self.compose = "AT+QISEND=1,"
-		self.compose += str(len(data))
-		self.compose += ",\""
-		self.compose += str(self.ip_address)
-		self.compose += "\","
-		self.compose += str(self.port_number)
-
-		self.sendATComm(self.compose,">")
-		self.clear_compose()
-		self.sendATComm(data,"SEND OK")
-
-	# Function for closing server connection
-	def closeConnection(self):
-		self.sendATComm("AT+QICLOSE=1","\r\n")
-
-	
 	#******************************************************************************************
 	#*** HAT Peripheral Functions **********************************************************
 	#******************************************************************************************
