@@ -9,16 +9,29 @@
 import time
 import serial
 import RPi.GPIO as GPIO
+import pigpio
+import os
 
 # Peripheral Pin Definations
-USER_BUTTON = 22
-USER_LED = 27
+USER_BUTTON = 6
+USER_LED = 5
 ENABLE = 17
 POWERKEY = 24 
 STATUS = 23
 L96_RESET = 18
 L96_STANDBY = 20
 PPS_PIN = 26
+L96_SOFT_RX = 27
+L96_SOFT_TX = 22
+
+os.system("sudo pgpiod") 
+
+pigpio.pi()
+L96_SERIAL = pigpio.pi()
+L96_SERIAL.set_mode(L96_SOFT_RX,pigpio.INPUT)
+L96_SERIAL.set_mode(L96_SOFT_TX,pigpio.OUTPUT)
+
+L96_SERIAL.bb_serial_read_open(L96_SOFT_RX,9600,8)
 
 # global variables
 TIMEOUT = 3 # seconds
@@ -87,12 +100,12 @@ class GPRSIoT:
 
 	# Function for enable M95 module
 	def enable(self):
-		GPIO.output(ENABLE,1)
+		GPIO.output(ENABLE,0)
 		debug_print("M95 module enabled!")
 
 	# Function for powering down M95 module and all peripherals from voltage regulator 
 	def disable(self):
-		GPIO.output(ENABLE,0)
+		GPIO.output(ENABLE,1)
 		debug_print("M95 module disabled!")
 
 	# Function for powering up or down M95 module
@@ -293,7 +306,13 @@ class GPRSIoT:
 	#******************************************************************************************
 	#*** GNSS Functions ***********************************************************************
 	#******************************************************************************************
-
+	
+	#Function for reading NMEA message
+	def readNMEA(self):
+		(count, data) = L96_SERIAL.bb_serial_read(L96_SOFT_RX)
+		if count:
+			print(data)
+	
 	# Function for turning on GNSS
 	def turnOnGNSS(self):
 		self.sendATComm("AT+QGPS=1","OK\r\n")
@@ -400,13 +419,13 @@ class GPRSIoT:
 	
 	# Function for configurating and activating TCP context 
 	def activateContext(self):
-	self.sendATComm("AT+CGDCONT=1,\"IP\",\"CMNET\"","OK\r\n"); 
-  	delay(1000);
-  	self.sendATComm("AT+CGACT=1,1","\r\n");
+		self.sendATComm("AT+CGDCONT=1,\"IP\",\"CMNET\"","OK\r\n"); 
+		delay(1000);
+		self.sendATComm("AT+CGACT=1,1","OK\r\n");
 
 	# Function for deactivating TCP context 
 	def deactivateContext(self):
-	  self.sendATComm("AT+CGACT=0,1","\r\n");
+		self.sendATComm("AT+CGACT=0,1","OK\r\n");
 
 	# Function for connecting to server via TCP
 	# just buffer access mode is supported for now.
@@ -433,16 +452,14 @@ class GPRSIoT:
 	
 	# Function for connecting to server via UDP
 	def startUDPService(self):
-		port = "3005"
-
 		self.compose = "AT+QIOPEN=\"UDP\",\""
 		self.compose += str(self.ip_address)
 		self.compose += "\","
-		self.compose += str(port)
+		self.compose += str(self.port_number)
 
 		self.sendATComm(self.compose,"OK\r\n")
 		self.clear_compose()
-		sendATComm("AT+QISTATE","\r\n");
+		self.sendATComm("AT+QISTATE","OK\r\n");
 
 	# Fuction for sending data via udp.
 	def sendDataUDP(self, data):
