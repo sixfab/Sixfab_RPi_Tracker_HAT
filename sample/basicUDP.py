@@ -13,6 +13,11 @@ node.disable()
 node.enable()
 node.powerUp()
 
+node.turnOnUserLED()
+time.sleep(1)
+node.turnOffUserLED()
+time.sleep(1)
+
 node.sendATComm("ATE1","OK\r\n")
 
 node.getIMEI()

@@ -12,7 +12,6 @@ node.enable()
 time.sleep(0.5)
 node.powerUp()
 
-node.getResponse("RDY")
 node.sendATComm("ATE1","OK\r\n")
 
-node.sendSMS("xxxxxxxxxxxxx","hello world!")
+node.sendSMS("+xxxxxxxxxxx","hello world!")
