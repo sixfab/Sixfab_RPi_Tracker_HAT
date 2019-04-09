@@ -7,6 +7,14 @@ import time
 
 node = gprsiot.GPRSIoT()
 
+#node.Sendline()
+node.readNMEA()
+time.sleep(2)
+
 while True:
-  node.readNMEA()
-  time.sleep(0.5)
+  message = node.readNMEA()
+  msg = message.decode(encoding="utf-8", errors='ignore')
+  #print(msg)
+  msg = ""
+  time.sleep(2)
+  

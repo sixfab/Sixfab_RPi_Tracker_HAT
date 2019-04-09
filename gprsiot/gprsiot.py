@@ -13,30 +13,24 @@ import pigpio
 import os
 
 # Peripheral Pin Definations
-USER_BUTTON = 6
-USER_LED = 5
+USER_BUTTON = 21 
+USER_LED = 20
 ENABLE = 17
 POWERKEY = 24 
 STATUS = 23
-L96_RESET = 18
-L96_STANDBY = 20
-PPS_PIN = 26
-L96_SOFT_RX = 27
-L96_SOFT_TX = 22
-
-os.system("sudo pgpiod") 
-
-pigpio.pi()
-L96_SERIAL = pigpio.pi()
-L96_SERIAL.set_mode(L96_SOFT_RX,pigpio.INPUT)
-L96_SERIAL.set_mode(L96_SOFT_TX,pigpio.OUTPUT)
-
-L96_SERIAL.bb_serial_read_open(L96_SOFT_RX,9600,8)
+L96_RESET = 26
+GPS_FIX = 5
+GEO_FENCE = 19
+FORCE_ON = 13
+PPS_PIN = 6
+L96_SOFT_RX = 22
+L96_SOFT_TX = 27
 
 # global variables
 TIMEOUT = 3 # seconds
 ser = serial.Serial()
 
+fileLog = open("log.txt","w") 
 
 ###########################################
 ### Private Methods #######################
@@ -68,7 +62,8 @@ class GPRSIoT:
 	
 	response = "" # variable for modem self.responses
 	compose = "" # variable for command self.composes
-
+	L96_SERIAL = None
+	
 	# Special Characters
 	CTRL_Z = '\x1A'
 	
@@ -76,7 +71,15 @@ class GPRSIoT:
 	def __init__(self, serial_port="/dev/ttyS0", serial_baudrate=115200, board="Sixfab Raspberry Pi Cellular IoT HAT"):
 		
 		self.board = board
-    	
+		
+		os.system("sudo pigpiod")		
+		delay(1000)
+		pigpio.pi()
+		self.L96_SERIAL = pigpio.pi()
+		self.L96_SERIAL.set_mode(L96_SOFT_RX,pigpio.INPUT)
+		self.L96_SERIAL.set_mode(L96_SOFT_TX,pigpio.OUTPUT)
+		self.L96_SERIAL.bb_serial_read_open(L96_SOFT_RX,9600,8)
+
 		ser.port = serial_port
 		ser.baudrate = serial_baudrate
 		ser.parity=serial.PARITY_NONE
@@ -88,12 +91,21 @@ class GPRSIoT:
 		GPIO.setup(ENABLE, GPIO.OUT)
 		GPIO.setup(POWERKEY, GPIO.OUT)
 		GPIO.setup(L96_RESET, GPIO.OUT)
-		GPIO.setup(L96_STANDBY, GPIO.OUT)
+		GPIO.setup(FORCE_ON, GPIO.OUT)
+		GPIO.setup(GEO_FENCE, GPIO.IN)
 		GPIO.setup(STATUS, GPIO.IN)
 		GPIO.setup(PPS_PIN, GPIO.IN)
-			
+		GPIO.setup(GPS_FIX, GPIO.IN)
+		
+		GPIO.output(L96_RESET,0)
+		GPIO.output(FORCE_ON,0)
+		
 		debug_print(self.board + " Class initialized!")
- 	
+ 		
+	def __del__(self):
+		fileLog.close() 
+		os.system("sudo killall pigpiod")
+		
  	# Function for clearing global compose variable 
 	def clear_compose(self):
 		self.compose = ""
@@ -110,13 +122,13 @@ class GPRSIoT:
 
 	# Function for powering up or down M95 module
 	def powerUp(self):
-		if(self.getModemStatus()):
+		if(self.getModemStatus() == 0):
 			GPIO.output(POWERKEY,1)
-			delay(1000)
+			delay(2000)
 			GPIO.output(POWERKEY,0)
-			delay(1000)
+			delay(2000)
 		
-		while self.getModemStatus():
+		while (self.getModemStatus() == 0):
 			pass
 		debug_print("M95 module powered up!")
 		
@@ -307,11 +319,35 @@ class GPRSIoT:
 	#*** GNSS Functions ***********************************************************************
 	#******************************************************************************************
 	
+	# Function for send string to L96
+	def Sendline(self):
+		self.L96_SERIAL.wave_clear()
+		self.L96_SERIAL.wave_add_serial(L96_SOFT_TX,9600,"$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n")
+		wid = self.L96_SERIAL.wave_create()
+		self.L96_SERIAL.wave_send_once(wid)
+		
+	def resetL96(self):
+		GPIO.output(L96_RESET,1)
+		delay(2000)
+		GPIO.output(L96_RESET,0)
+	
+	def readOnePPS(self):
+		return(GPIO.input(PPS_PIN))
+		
+	def gpsIsFixed(self):
+		return(GPIO.input(GPS_FIX))
+	
+	def GPSforceOn(self):
+		GPIO.output(FORCE_ON,1)
+		delay(500)
+		GPIO.output(FORCE_ON,0)
+		
 	#Function for reading NMEA message
 	def readNMEA(self):
-		(count, data) = L96_SERIAL.bb_serial_read(L96_SOFT_RX)
+		(count, data) = self.L96_SERIAL.bb_serial_read(L96_SOFT_RX)
 		if count:
-			print(data)
+			fileLog.writelines(str(data))
+			return data
 	
 	# Function for turning on GNSS
 	def turnOnGNSS(self):
