@@ -96,6 +96,8 @@ class GPRSIoT:
 		GPIO.setup(STATUS, GPIO.IN)
 		GPIO.setup(PPS_PIN, GPIO.IN)
 		GPIO.setup(GPS_FIX, GPIO.IN)
+		GPIO.setup(USER_LED, GPIO.OUT)
+		GPIO.setup(USER_BUTTON, GPIO.IN)
 		
 		GPIO.output(L96_RESET,0)
 		GPIO.output(FORCE_ON,0)
@@ -614,15 +616,12 @@ class GPRSIoT:
 
 	# Function for reading user button
 	def readUserButton(self):
-		GPIO.setup(USER_BUTTON, GPIO.IN)
 		return GPIO.input(USER_BUTTON)
 
 	# Function for turning on user LED
 	def turnOnUserLED(self):
-		GPIO.setup(USER_LED, GPIO.OUT)
 		GPIO.output(USER_LED, 1)
 
 	# Function for turning off user LED
 	def turnOffUserLED(self):
-		GPIO.setup(USER_LED, GPIO.OUT)
 		GPIO.output(USER_LED, 0)
