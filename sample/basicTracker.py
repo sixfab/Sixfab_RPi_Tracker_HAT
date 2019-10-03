@@ -1,14 +1,15 @@
 '''
   basicTraker.py - This is basic Tracker example.
   Created by Yasin Kaya (selengalp), January 2, 2019.
+  Modified by Saeed Johar (saeedjohar), October 3, 2019.
 '''
-from gprsiot import gprsiot
+from tracker import tracker
 from time import sleep
 
 your_ip = "xx.xx.xx.xx" # change with your ip
 your_port = "xxxx" # change with your port
 
-node = gprsiot.GPRSIoT()
+node = tracker.Tracker()
 node.disable()
 sleep(2)
 

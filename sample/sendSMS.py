@@ -1,15 +1,16 @@
 '''
   sendSMS.py - This is basic SMS Service example.
   Created by Yasin Kaya (selengalp), January 2, 2019.
+  Modified by Saeed Johar (saeedjohar), October 3, 2019. 
 '''
-from gprsiot import gprsiot
-import time
+from tracker import tracker
+from time import sleep
 
-node = gprsiot.GPRSIoT()
+node = tracker.Tracker()
 node.disable()
-time.sleep(0.5)
+sleep(0.5)
 node.enable()
-time.sleep(0.5)
+sleep(0.5)
 node.powerUp()
 
 node.sendATComm("ATE1","OK\r\n")
