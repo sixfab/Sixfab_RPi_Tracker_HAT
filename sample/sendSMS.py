@@ -14,4 +14,4 @@ node.powerUp()
 
 node.sendATComm("ATE1","OK\r\n")
 
-node.sendSMS("+xxxxxxxxxxx","hello world!")
+node.sendSMS("+xxxxxxxxxxx","hello world!") #replace +xxxx with phone number and hello world with your text message.
