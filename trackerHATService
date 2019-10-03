@@ -4,7 +4,7 @@ After=multi-user.target
  
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /home/pi/Documents/Sixfab/Sixfab_RPi_GPRSIoT_HAT/sample/basicTracker.py
+ExecStart=/usr/bin/python3 /home/pi/Documents/Sixfab/Sixfab_RPi_Tracker_HAT/sample/basicTracker.py
 Restart=always
  
 [Install]
