@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='sixfab_gprsiot',
+    name='sixfab_tracker_shield',
     version='1.0.0',
     author='Yasin Kaya',
     author_email='yasinkaya.121@gmail.com',
